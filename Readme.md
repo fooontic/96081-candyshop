@@ -1,7 +1,7 @@
 # Личный проект «Кэндишоп» [![Build status][travis-image]][travis-url]
 
 * Студент: [Вадим Матвеев](https://up.htmlacademy.ru/javascript/15/user/96081).
-* Наставник: `Неизвестно`.
+* Наставник: [Алексей Комаров](https://htmlacademy.ru/profile/id178804).
 
 ---
 
