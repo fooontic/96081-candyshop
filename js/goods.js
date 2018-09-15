@@ -8,6 +8,9 @@ console.log('productImages: ' + productImages.length);
 
 var nutritionContents = ['молоко', 'сливки', 'вода', 'пищевой краситель', 'патока', 'ароматизатор бекона', 'ароматизатор свинца', 'ароматизатор дуба, идентичный натуральному', 'ароматизатор картофеля', 'лимонная кислота', 'загуститель', 'эмульгатор', 'консервант: сорбат калия', 'посолочная смесь: соль, нитрит натрия', 'ксилит', 'карбамид', 'вилларибо', 'виллабаджо'];
 
+
+
+
 // Функция рандома
 var randomInterval = function (min, max) {
 	return Math.round(Math.random() * (max - min + 1) + min);
@@ -44,24 +47,15 @@ var makeProduct = function (productName) {
 };
 
 var quantityOfProducts = 26; // Количество генерируемых тестовых товаров
-var productList = []; // Список товаров
-var makeProductList = function () {
-	for (var i = 0; i < quantityOfProducts; i++) {
-		productList[i] = makeProduct(productNames[i]);
+var makeProductList = function (quantity) {
+	var list = [];
+	for (var i = 0; i < quantity; i++) {
+		list[i] = makeProduct(productNames[i]);
 	};
-	return productList;
+	return list;
 };
-makeProductList();
 
-var catalog = document.querySelector('.catalog__cards');
-var productCardTemplate = document
-	.querySelector('#card')
-	.content
-	.querySelector('article.card');
-console.log(productCardTemplate);
-
-var fragmentOfProductCards = document.createDocumentFragment();
-
+// Определение количесва звёзд в рейтинге
 var defineRatingClass = function (element, value) {
 	element.classList.remove('stars__rating--one', 'stars__rating--two', 'stars__rating--three', 'stars__rating--four', 'stars__rating--five');
 	if (value === 1) {
@@ -78,7 +72,8 @@ var defineRatingClass = function (element, value) {
 	return element;
 }
 
-var makeCard = function (card, product) {
+// Создание карточки товара
+var makeProductCard = function (card, product) {
 	var title = card.querySelector('.card__title');
 	var picture = card.querySelector('.card__img');
 	var price = card.querySelector('.card__price');
@@ -118,11 +113,71 @@ var makeCard = function (card, product) {
 	return card;
 }
 
-for (var i = 0; i < productList.length; i++) {
-	var template = productCardTemplate.cloneNode(true);
-	var newCard = makeCard(template, productList[i]);
+// Создание заказанного товара
+var makeOrderItem = function (card, product) {
+	var title = card.querySelector('.card-order__title');
+	var price = card.querySelector('.card-order__price');
 
-	fragmentOfProductCards.appendChild(newCard);
+	title.textContent = product.name;
+	price.textContent = product.price;
+
+	return card;
 }
 
-catalog.appendChild(fragmentOfProductCards);
+// Последовательное создание карточек с товарами
+var addNewElements = function (source, make, array, dest) {
+	for (var i = 0; i < array.length; i++) {
+		var template = source.cloneNode(true);
+		var newCard = make(template, array[i]);
+
+		dest.appendChild(newCard);
+	}
+};
+
+
+
+var catalog = document.querySelector('.catalog__cards'); // Каталог на странице
+var order = document.querySelector('.goods__cards');
+
+var productCardTemplate = document
+	.querySelector('#card')
+	.content
+	.querySelector('article.card'); // Шаблон карточки товаров
+var orderTemplate = document
+	.querySelector('#card-order')
+	.content
+	.querySelector('article.card-order'); // Шаблон заказанного товара
+
+var fragmentOfProductCards = document.createDocumentFragment(); // Временный элемент с карточками товаров
+var fragmentOfOrder = document.createDocumentFragment(); // Временный элемент с карточками товаров
+
+var productList = makeProductList(quantityOfProducts); // Формируем список товаров
+var orderList = makeProductList(3); // Формируем список заказанных товаров
+
+// Последовательно создаём карточки с товарами
+addNewElements(
+	productCardTemplate,
+	makeProductCard,
+	productList,
+	fragmentOfProductCards
+);
+
+// Последовательно создаём заказанные товары
+addNewElements(
+	orderTemplate,
+	makeOrderItem,
+	orderList,
+	fragmentOfOrder
+);
+
+catalog.classList.remove('catalog__cards--load'); // Удаляем класс загрузки товаров
+catalog.querySelector('.catalog__load')
+	.classList
+	.add('visually-hidden'); // Скрываем сообщение о загрузке товаров
+catalog.appendChild(fragmentOfProductCards); // Добавляем на страницу готовый список товаров
+
+order.classList.remove('goods__cards--empty'); // Удаляем класс пустого заказа
+order.querySelector('.goods__card-empty')
+	.classList
+	.add('visually-hidden'); // Скрываем сообщение о пустом заказе
+order.appendChild(fragmentOfOrder); // Добавляем на страницу готовый список заказов
