@@ -1,22 +1,22 @@
 'use strict';
 
-var productNames = ['Чесночные сливки', 'Огуречный педант', 'Молочная хрюша', 'Грибной шейк', 'Баклажановое безумие', 'Паприколу итальяно', 'Нинзя-удар васаби', 'Хитрый баклажан', 'Горчичный вызов', 'Кедровая липучка', 'Корманный портвейн', 'Чилийский задира', 'Беконовый взрыв', 'Арахис vs виноград', 'Сельдерейная душа', 'Початок в бутылке', 'Чернющий мистер чеснок', 'Раша федераша', 'Кислая мина', 'Кукурузное утро', 'Икорный фуршет', 'Новогоднее настроение', 'С пивком потянет', 'Мисс креветка', 'Бесконечный взрыв', 'Невинные винные', 'Бельгийское пенное', 'Острый язычок'];
-console.log('productNames: ' + productNames.length);
+var PRODUCT_NAMES = ['Чесночные сливки', 'Огуречный педант', 'Молочная хрюша', 'Грибной шейк', 'Баклажановое безумие', 'Паприколу итальяно', 'Нинзя-удар васаби', 'Хитрый баклажан', 'Горчичный вызов', 'Кедровая липучка', 'Корманный портвейн', 'Чилийский задира', 'Беконовый взрыв', 'Арахис vs виноград', 'Сельдерейная душа', 'Початок в бутылке', 'Чернющий мистер чеснок', 'Раша федераша', 'Кислая мина', 'Кукурузное утро', 'Икорный фуршет', 'Новогоднее настроение', 'С пивком потянет', 'Мисс креветка', 'Бесконечный взрыв', 'Невинные винные', 'Бельгийское пенное', 'Острый язычок'];
 
-var productImages = ['gum-cedar.jpg', 'gum-cedar.jpg', 'gum-chile.jpg', 'gum-eggplant.jpg', 'gum-mustard.jpg', 'gum-portwine.jpg', 'gum-wasabi.jpg', 'ice-cucumber.jpg', 'ice-eggplant.jpg', 'ice-garlic.jpg', 'ice-italian.jpg', 'ice-mushroom.jpg', 'ice-pig.jpg', 'marmalade-beer.jpg', 'marmalade-caviar.jpg', 'marmalade-corn.jpg', 'marmalade-new-year.jpg', 'marmalade-sour.jpg', 'marshmallow-bacon.jpg', 'marshmallow-beer.jpg', 'marshmallow-shrimp.jpg', 'marshmallow-spicy.jpg', 'marshmallow-wine.jpg', 'soda-bacon.jpg', 'soda-celery.jpg', 'soda-cob.jpg', 'soda-garlic.jpg', 'soda-peanut-grapes.jpg', 'soda-russian.jpg'];
-console.log('productImages: ' + productImages.length);
+var PRODUCT_IMAGES = ['gum-cedar.jpg', 'gum-cedar.jpg', 'gum-chile.jpg', 'gum-eggplant.jpg', 'gum-mustard.jpg', 'gum-portwine.jpg', 'gum-wasabi.jpg', 'ice-cucumber.jpg', 'ice-eggplant.jpg', 'ice-garlic.jpg', 'ice-italian.jpg', 'ice-mushroom.jpg', 'ice-pig.jpg', 'marmalade-beer.jpg', 'marmalade-caviar.jpg', 'marmalade-corn.jpg', 'marmalade-new-year.jpg', 'marmalade-sour.jpg', 'marshmallow-bacon.jpg', 'marshmallow-beer.jpg', 'marshmallow-shrimp.jpg', 'marshmallow-spicy.jpg', 'marshmallow-wine.jpg', 'soda-bacon.jpg', 'soda-celery.jpg', 'soda-cob.jpg', 'soda-garlic.jpg', 'soda-peanut-grapes.jpg', 'soda-russian.jpg'];
 
-var nutritionContents = ['молоко', 'сливки', 'вода', 'пищевой краситель', 'патока', 'ароматизатор бекона', 'ароматизатор свинца', 'ароматизатор дуба, идентичный натуральному', 'ароматизатор картофеля', 'лимонная кислота', 'загуститель', 'эмульгатор', 'консервант: сорбат калия', 'посолочная смесь: соль, нитрит натрия', 'ксилит', 'карбамид', 'вилларибо', 'виллабаджо'];
+var NUTRITION_CONTENTS = ['молоко', 'сливки', 'вода', 'пищевой краситель', 'патока', 'ароматизатор бекона', 'ароматизатор свинца', 'ароматизатор дуба, идентичный натуральному', 'ароматизатор картофеля', 'лимонная кислота', 'загуститель', 'эмульгатор', 'консервант: сорбат калия', 'посолочная смесь: соль, нитрит натрия', 'ксилит', 'карбамид', 'вилларибо', 'виллабаджо'];
+
+var imgSource = '/img/cards/';
 
 
 // Функция рандома
-var randomInterval = function (min, max) {
-  return Math.round(Math.random() * (max - min + 1) + min);
+var getRandomIntFromInterval = function (min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
 // Создание состава тестового товара
 var makeNutritionContents = function (contents) {
-  var quantityOfIngrediens = randomInterval(2, contents.length);
+  var quantityOfIngrediens = getRandomIntFromInterval(2, contents.length);
   var ingrediens = [];
   for (var i = 0; i <= quantityOfIngrediens; i++) {
     ingrediens[i] = contents[i];
@@ -24,22 +24,68 @@ var makeNutritionContents = function (contents) {
   return ingrediens;
 };
 
+// var makeNutritionContents = function (contents) {
+//   var quantityOfIngrediens = getRandomIntFromInterval(2, contents.length);
+//   quantityOfIngrediens = 3;
+//   var firstIndex = getRandomIntFromInterval(1, quantityOfIngrediens);
+//   var indexes = [firstIndex];
+//   console.log('indexes: ' + indexes.length);
+//   var ingrediens = [];
+//   debugger;
+//
+//   for (var i = 0; i < indexes.length && i <= quantityOfIngrediens; i++) {
+//     var randomIndex = getRandomIntFromInterval(1, quantityOfIngrediens);
+//     var randomizeIndexes = function () {
+//       if (randomIndex !== indexes[i]) {
+//         indexes.push(randomIndex);
+//         console.log('need to add');
+//         console.log('indexes');
+//       } else {
+//         console.log('find new number');
+//         console.log('indexes');
+//         randomizeIndexes();
+//       }
+//     };
+//
+//     randomizeIndexes();
+//   }
+//
+//   return indexes;
+// };
+// makeNutritionContents(NUTRITION_CONTENTS);
+
+var getRandomValues = function (mockArray) {
+  var defaultLength = getRandomIntFromInterval(10, mockArray.length);
+  var mockArrayCopy = mockArray.slice();
+  var randomValues = [];
+  // debugger;
+  for (var i = 0; i < defaultLength; i++) {
+    var randomIndex = getRandomIntFromInterval(0, mockArrayCopy.length - 1);
+    var randomValue = mockArrayCopy.splice(randomIndex, 1);
+    randomValues.push(randomValue[0]);
+  }
+
+  return randomValues;
+};
+
+console.log(getRandomValues(NUTRITION_CONTENTS));
+
 // Создание тестового товара
 var makeProduct = function (productName) {
   var product = {};
-  product.name = productName,
-  product.picture = '/img/cards/' + productImages[randomInterval(0, productImages.length)];
-  product.amount = randomInterval(0, 20);
-  product.price = randomInterval(100, 1500);
-  product.weight = randomInterval(30, 300);
+  product.name = productName;
+  product.picture = imgSource + PRODUCT_IMAGES[getRandomIntFromInterval(0, PRODUCT_IMAGES.length)];
+  product.amount = getRandomIntFromInterval(0, 20);
+  product.price = getRandomIntFromInterval(100, 1500);
+  product.weight = getRandomIntFromInterval(30, 300);
   product.rating = {
-    value: randomInterval(1, 5),
-    number: randomInterval(10, 900)
+    value: getRandomIntFromInterval(1, 5),
+    number: getRandomIntFromInterval(10, 900)
   };
   product.nutritionFacts = {
-    sugar: !!randomInterval(0, 1),
-    energy: randomInterval(70, 500),
-    contents: makeNutritionContents(nutritionContents)
+    sugar: !!getRandomIntFromInterval(0, 1),
+    energy: getRandomIntFromInterval(70, 500),
+    contents: makeNutritionContents(NUTRITION_CONTENTS)
   };
   return product;
 };
@@ -48,24 +94,45 @@ var quantityOfProducts = 26; // Количество генерируемых т
 var makeProductList = function (quantity) {
   var list = [];
   for (var i = 0; i < quantity; i++) {
-    list[i] = makeProduct(productNames[i]);
+    list[i] = makeProduct(PRODUCT_NAMES[i]);
   }
   return list;
 };
 
+var clearStars = function (element) {
+  element.classList.remove('stars__rating--one', 'stars__rating--two', 'stars__rating--three', 'stars__rating--four', 'stars__rating--five');
+  return element;
+};
+
 // Определение количесва звёзд в рейтинге
 var defineRatingClass = function (element, value) {
-  element.classList.remove('stars__rating--one', 'stars__rating--two', 'stars__rating--three', 'stars__rating--four', 'stars__rating--five');
-  if (value === 1) {
-    element.classList.add('stars__rating--one');
-  } else if (value === 2) {
-    element.classList.add('stars__rating--two');
-  } else if (value === 3) {
-    element.classList.add('stars__rating--three');
-  } else if (value === 4) {
-    element.classList.add('stars__rating--four');
-  } else if (value === 5) {
-    element.classList.add('stars__rating--five');
+  // if (value === 1) {
+  //   element.classList.add('stars__rating--one');
+  // } else if (value === 2) {
+  //   element.classList.add('stars__rating--two');
+  // } else if (value === 3) {
+  //   element.classList.add('stars__rating--three');
+  // } else if (value === 4) {
+  //   element.classList.add('stars__rating--four');
+  // } else if (value === 5) {
+  //   element.classList.add('stars__rating--five');
+  // }
+  switch (value) {
+    case 1:
+      element.classList.add('stars__rating--one');
+      break;
+    case 2:
+      element.classList.add('stars__rating--two');
+      break;
+    case 3:
+      element.classList.add('stars__rating--three');
+      break;
+    case 4:
+      element.classList.add('stars__rating--four');
+      break;
+    case 5:
+      element.classList.add('stars__rating--five');
+      break;
   }
   return element;
 };
@@ -94,6 +161,7 @@ var makeProductCard = function (card, product) {
     product.weight +
     'Г</span>';
 
+  clearStars(rating);
   defineRatingClass(rating, product.rating.value);
   rating.textContent = 'Рейтинг: ' + product.rating.value + ' звёзд';
 
