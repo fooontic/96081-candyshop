@@ -6,7 +6,10 @@ var PRODUCT_IMAGES = ['gum-cedar.jpg', 'gum-cedar.jpg', 'gum-chile.jpg', 'gum-eg
 
 var NUTRITION_CONTENTS = ['молоко', 'сливки', 'вода', 'пищевой краситель', 'патока', 'ароматизатор бекона', 'ароматизатор свинца', 'ароматизатор дуба, идентичный натуральному', 'ароматизатор картофеля', 'лимонная кислота', 'загуститель', 'эмульгатор', 'консервант: сорбат калия', 'посолочная смесь: соль, нитрит натрия', 'ксилит', 'карбамид', 'вилларибо', 'виллабаджо'];
 
-var imgSource = '/img/cards/';
+var QUANTITY_OF_PRODUCTS = 26; // Количество генерируемых тестовых товаров
+var QUANTITY_OF_ORDERS = 3; // Количество генерируемых тестовых заказов
+
+var IMG_SOURCE = '/img/cards/';
 
 
 // Функция рандома
@@ -14,51 +17,10 @@ var getRandomIntFromInterval = function (min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
-// Создание состава тестового товара
-var makeNutritionContents = function (contents) {
-  var quantityOfIngrediens = getRandomIntFromInterval(2, contents.length);
-  var ingrediens = [];
-  for (var i = 0; i <= quantityOfIngrediens; i++) {
-    ingrediens[i] = contents[i];
-  }
-  return ingrediens;
-};
-
-// var makeNutritionContents = function (contents) {
-//   var quantityOfIngrediens = getRandomIntFromInterval(2, contents.length);
-//   quantityOfIngrediens = 3;
-//   var firstIndex = getRandomIntFromInterval(1, quantityOfIngrediens);
-//   var indexes = [firstIndex];
-//   console.log('indexes: ' + indexes.length);
-//   var ingrediens = [];
-//   debugger;
-//
-//   for (var i = 0; i < indexes.length && i <= quantityOfIngrediens; i++) {
-//     var randomIndex = getRandomIntFromInterval(1, quantityOfIngrediens);
-//     var randomizeIndexes = function () {
-//       if (randomIndex !== indexes[i]) {
-//         indexes.push(randomIndex);
-//         console.log('need to add');
-//         console.log('indexes');
-//       } else {
-//         console.log('find new number');
-//         console.log('indexes');
-//         randomizeIndexes();
-//       }
-//     };
-//
-//     randomizeIndexes();
-//   }
-//
-//   return indexes;
-// };
-// makeNutritionContents(NUTRITION_CONTENTS);
-
 var getRandomValues = function (mockArray) {
   var defaultLength = getRandomIntFromInterval(10, mockArray.length);
   var mockArrayCopy = mockArray.slice();
   var randomValues = [];
-  // debugger;
   for (var i = 0; i < defaultLength; i++) {
     var randomIndex = getRandomIntFromInterval(0, mockArrayCopy.length - 1);
     var randomValue = mockArrayCopy.splice(randomIndex, 1);
@@ -68,13 +30,11 @@ var getRandomValues = function (mockArray) {
   return randomValues;
 };
 
-console.log(getRandomValues(NUTRITION_CONTENTS));
-
 // Создание тестового товара
-var makeProduct = function (productName) {
+var makeProductData = function (productName) {
   var product = {};
   product.name = productName;
-  product.picture = imgSource + PRODUCT_IMAGES[getRandomIntFromInterval(0, PRODUCT_IMAGES.length)];
+  product.picture = IMG_SOURCE + PRODUCT_IMAGES[getRandomIntFromInterval(0, PRODUCT_IMAGES.length)];
   product.amount = getRandomIntFromInterval(0, 20);
   product.price = getRandomIntFromInterval(100, 1500);
   product.weight = getRandomIntFromInterval(30, 300);
@@ -85,16 +45,15 @@ var makeProduct = function (productName) {
   product.nutritionFacts = {
     sugar: !!getRandomIntFromInterval(0, 1),
     energy: getRandomIntFromInterval(70, 500),
-    contents: makeNutritionContents(NUTRITION_CONTENTS)
+    contents: getRandomValues(NUTRITION_CONTENTS)
   };
   return product;
 };
 
-var quantityOfProducts = 26; // Количество генерируемых тестовых товаров
-var makeProductList = function (quantity) {
+var makeProductDataList = function (quantity) {
   var list = [];
   for (var i = 0; i < quantity; i++) {
-    list[i] = makeProduct(PRODUCT_NAMES[i]);
+    list[i] = makeProductData(PRODUCT_NAMES[i]);
   }
   return list;
 };
@@ -105,18 +64,7 @@ var clearStars = function (element) {
 };
 
 // Определение количесва звёзд в рейтинге
-var defineRatingClass = function (element, value) {
-  // if (value === 1) {
-  //   element.classList.add('stars__rating--one');
-  // } else if (value === 2) {
-  //   element.classList.add('stars__rating--two');
-  // } else if (value === 3) {
-  //   element.classList.add('stars__rating--three');
-  // } else if (value === 4) {
-  //   element.classList.add('stars__rating--four');
-  // } else if (value === 5) {
-  //   element.classList.add('stars__rating--five');
-  // }
+var setRatingClass = function (element, value) {
   switch (value) {
     case 1:
       element.classList.add('stars__rating--one');
@@ -138,11 +86,10 @@ var defineRatingClass = function (element, value) {
 };
 
 // Создание карточки товара
-var makeProductCard = function (card, product) {
+var makeProductCardNode = function (card, product) {
   var title = card.querySelector('.card__title');
-  // var picture = card.querySelector('.card__img');
   var price = card.querySelector('.card__price');
-  // var weight = card.querySelector('.card__weight');
+  var weight = card.querySelector('.card__weight');
   var rating = card.querySelector('.stars__rating');
   var count = card.querySelector('.star__count');
   var sugar = card.querySelector('.card__characteristic');
@@ -150,27 +97,16 @@ var makeProductCard = function (card, product) {
 
   title.textContent = product.name;
 
-  // picture.src = product.picture;
-  // picture.alt = product.name;
-
-  // price.textContent = product.price;
-  // weight.textContent = product.weight;
-  price.innerHTML =
-    product.price +
-    ' <span class="card__currency">₽</span><span class="card__weight">/ ' +
-    product.weight +
-    'Г</span>';
+  price.childNodes.item(0).textContent = product.price;
+  weight.textContent = '/ ' + product.weight + ' Г';
 
   clearStars(rating);
-  defineRatingClass(rating, product.rating.value);
+  setRatingClass(rating, product.rating.value);
   rating.textContent = 'Рейтинг: ' + product.rating.value + ' звёзд';
 
   count.textContent = '(' + product.rating.number + ')';
 
-  var sugarText = 'Содержит сахар';
-  if (!product.nutritionFacts.sugar) {
-    sugarText = 'Без сахара';
-  }
+  var sugarText = product.nutritionFacts.sugar ? 'Содержит сахар' : 'Без сахара';
   sugar.textContent = sugarText;
 
   contents.textContent = product.nutritionFacts.contents;
@@ -179,7 +115,7 @@ var makeProductCard = function (card, product) {
 };
 
 // Создание заказанного товара
-var makeOrderItem = function (card, product) {
+var makeOrderNode = function (card, product) {
   var title = card.querySelector('.card-order__title');
   var price = card.querySelector('.card-order__price');
 
@@ -190,13 +126,17 @@ var makeOrderItem = function (card, product) {
 };
 
 // Последовательное создание карточек с товарами
-var addNewElements = function (source, make, array, dest) {
-  for (var i = 0; i < array.length; i++) {
-    var template = source.cloneNode(true);
-    var newCard = make(template, array[i]);
+var createElementsBlockFromTemplate = function (template, elementFactory, dataArray) {
+  var dest = document.createDocumentFragment();
+
+  for (var i = 0; i < dataArray.length; i++) {
+    var templateCopy = template.cloneNode(true);
+    var newCard = elementFactory(templateCopy, dataArray[i]);
 
     dest.appendChild(newCard);
   }
+
+  return dest;
 };
 
 
@@ -212,26 +152,21 @@ var orderTemplate = document
   .content
   .querySelector('article.card-order'); // Шаблон заказанного товара
 
-var fragmentOfProductCards = document.createDocumentFragment(); // Временный элемент с карточками товаров
-var fragmentOfOrder = document.createDocumentFragment(); // Временный элемент с карточками товаров
+var productList = makeProductDataList(QUANTITY_OF_PRODUCTS); // Формируем список товаров
+var orderList = makeProductDataList(QUANTITY_OF_ORDERS); // Формируем список заказанных товаров
 
-var productList = makeProductList(quantityOfProducts); // Формируем список товаров
-var orderList = makeProductList(3); // Формируем список заказанных товаров
-
-// Последовательно создаём карточки с товарами
-addNewElements(
+// Список сформированных карточек с товарами
+var fragmentOfProductCards = createElementsBlockFromTemplate(
     productCardTemplate,
-    makeProductCard,
-    productList,
-    fragmentOfProductCards
+    makeProductCardNode,
+    productList
 );
 
-// Последовательно создаём заказанные товары
-addNewElements(
+// Список сформированных карточек с заказанными товарами
+var fragmentOfOrders = createElementsBlockFromTemplate(
     orderTemplate,
-    makeOrderItem,
-    orderList,
-    fragmentOfOrder
+    makeOrderNode,
+    orderList
 );
 
 catalog.classList.remove('catalog__cards--load'); // Удаляем класс загрузки товаров
@@ -244,4 +179,4 @@ order.classList.remove('goods__cards--empty'); // Удаляем класс пу
 order.querySelector('.goods__card-empty')
   .classList
   .add('visually-hidden'); // Скрываем сообщение о пустом заказе
-order.appendChild(fragmentOfOrder); // Добавляем на страницу готовый список заказов
+order.appendChild(fragmentOfOrders); // Добавляем на страницу готовый список заказов
