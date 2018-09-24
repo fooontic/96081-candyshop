@@ -5,6 +5,7 @@ var PRODUCT_NAMES = ['Чесночные сливки', 'Огуречный пе
 var PRODUCT_IMAGES = ['gum-cedar.jpg', 'gum-cedar.jpg', 'gum-chile.jpg', 'gum-eggplant.jpg', 'gum-mustard.jpg', 'gum-portwine.jpg', 'gum-wasabi.jpg', 'ice-cucumber.jpg', 'ice-eggplant.jpg', 'ice-garlic.jpg', 'ice-italian.jpg', 'ice-mushroom.jpg', 'ice-pig.jpg', 'marmalade-beer.jpg', 'marmalade-caviar.jpg', 'marmalade-corn.jpg', 'marmalade-new-year.jpg', 'marmalade-sour.jpg', 'marshmallow-bacon.jpg', 'marshmallow-beer.jpg', 'marshmallow-shrimp.jpg', 'marshmallow-spicy.jpg', 'marshmallow-wine.jpg', 'soda-bacon.jpg', 'soda-celery.jpg', 'soda-cob.jpg', 'soda-garlic.jpg', 'soda-peanut-grapes.jpg', 'soda-russian.jpg'];
 
 var NUTRITION_CONTENTS = ['молоко', 'сливки', 'вода', 'пищевой краситель', 'патока', 'ароматизатор бекона', 'ароматизатор свинца', 'ароматизатор дуба, идентичный натуральному', 'ароматизатор картофеля', 'лимонная кислота', 'загуститель', 'эмульгатор', 'консервант: сорбат калия', 'посолочная смесь: соль, нитрит натрия', 'ксилит', 'карбамид', 'вилларибо', 'виллабаджо'];
+var MIN_NUTRITION_CONTENTS_QUANTITY = 2;
 
 var QUANTITY_OF_PRODUCTS = 26; // Количество генерируемых тестовых товаров
 var QUANTITY_OF_ORDERS = 3; // Количество генерируемых тестовых заказов
@@ -18,7 +19,7 @@ var getRandomIntFromInterval = function (min, max) {
 };
 
 var getRandomValues = function (mockArray) {
-  var defaultLength = getRandomIntFromInterval(10, mockArray.length);
+  var defaultLength = getRandomIntFromInterval(MIN_NUTRITION_CONTENTS_QUANTITY, mockArray.length);
   var mockArrayCopy = mockArray.slice();
   var randomValues = [];
   for (var i = 0; i < defaultLength; i++) {
@@ -86,62 +87,62 @@ var setRatingClass = function (element, value) {
 };
 
 // Создание карточки товара
-var makeProductCardNode = function (card, product) {
-  var title = card.querySelector('.card__title');
-  var price = card.querySelector('.card__price');
-  var weight = card.querySelector('.card__weight');
-  var rating = card.querySelector('.stars__rating');
-  var count = card.querySelector('.star__count');
-  var sugar = card.querySelector('.card__characteristic');
-  var contents = card.querySelector('.card__composition-list');
+var makeProductCardNode = function (cardNode, productData) {
+  var title = cardNode.querySelector('.card__title');
+  var price = cardNode.querySelector('.card__price');
+  var weight = cardNode.querySelector('.card__weight');
+  var rating = cardNode.querySelector('.stars__rating');
+  var count = cardNode.querySelector('.star__count');
+  var sugar = cardNode.querySelector('.card__characteristic');
+  var contents = cardNode.querySelector('.card__composition-list');
 
-  title.textContent = product.name;
+  title.textContent = productData.name;
 
-  price.childNodes.item(0).textContent = product.price;
-  weight.textContent = '/ ' + product.weight + ' Г';
+  price.childNodes.item(0).textContent = productData.price;
+  weight.textContent = '/ ' + productData.weight + ' Г';
 
   clearStars(rating);
-  setRatingClass(rating, product.rating.value);
-  rating.textContent = 'Рейтинг: ' + product.rating.value + ' звёзд';
+  setRatingClass(rating, productData.rating.value);
+  rating.textContent = 'Рейтинг: ' + productData.rating.value + ' звёзд';
 
-  count.textContent = '(' + product.rating.number + ')';
+  count.textContent = '(' + productData.rating.number + ')';
 
-  var sugarText = product.nutritionFacts.sugar ? 'Содержит сахар' : 'Без сахара';
+  var sugarText = productData.nutritionFacts.sugar ? 'Содержит сахар' : 'Без сахара';
   sugar.textContent = sugarText;
 
-  contents.textContent = product.nutritionFacts.contents;
+  contents.textContent = productData.nutritionFacts.contents.join(', ');
 
-  return card;
+  return cardNode;
 };
 
 // Создание заказанного товара
-var makeOrderNode = function (card, product) {
-  var title = card.querySelector('.card-order__title');
-  var price = card.querySelector('.card-order__price');
+var makeOrderNode = function (cardNode, productData) {
+  var title = cardNode.querySelector('.card-order__title');
+  var price = cardNode.querySelector('.card-order__price');
 
-  title.textContent = product.name;
-  price.textContent = product.price;
+  title.textContent = productData.name;
+  price.textContent = productData.price;
 
-  return card;
+  return cardNode;
 };
 
 // Последовательное создание карточек с товарами
 var createElementsBlockFromTemplate = function (template, elementFactory, dataArray) {
-  var dest = document.createDocumentFragment();
+  var elementsListNode = document.createDocumentFragment();
 
   for (var i = 0; i < dataArray.length; i++) {
     var templateCopy = template.cloneNode(true);
-    var newCard = elementFactory(templateCopy, dataArray[i]);
+    var newElementNode = elementFactory(templateCopy, dataArray[i]);
 
-    dest.appendChild(newCard);
+    elementsListNode.appendChild(newElementNode);
   }
 
-  return dest;
+  return elementsListNode;
 };
 
 
 var catalog = document.querySelector('.catalog__cards'); // Каталог на странице
-var order = document.querySelector('.goods__cards');
+var order = document.querySelector('.goods__cards'); // Список заказов
 
 var productCardTemplate = document
   .querySelector('#card')
@@ -169,7 +170,7 @@ var fragmentOfOrders = createElementsBlockFromTemplate(
     orderList
 );
 
-catalog.classList.remove('catalog__cards--load'); // Удаляем класс загрузки товаров
+catalog.classList.remove('catalog__cards--load');
 catalog.querySelector('.catalog__load')
   .classList
   .add('visually-hidden'); // Скрываем сообщение о загрузке товаров
