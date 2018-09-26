@@ -7,15 +7,24 @@ var PRODUCT_IMAGES = ['gum-cedar.jpg', 'gum-cedar.jpg', 'gum-chile.jpg', 'gum-eg
 var NUTRITION_CONTENTS = ['молоко', 'сливки', 'вода', 'пищевой краситель', 'патока', 'ароматизатор бекона', 'ароматизатор свинца', 'ароматизатор дуба, идентичный натуральному', 'ароматизатор картофеля', 'лимонная кислота', 'загуститель', 'эмульгатор', 'консервант: сорбат калия', 'посолочная смесь: соль, нитрит натрия', 'ксилит', 'карбамид', 'вилларибо', 'виллабаджо'];
 var MIN_NUTRITION_CONTENTS_QUANTITY = 2;
 
-var QUANTITY_OF_PRODUCTS = 26; // Количество генерируемых тестовых товаров
-var QUANTITY_OF_ORDERS = 3; // Количество генерируемых тестовых заказов
+var QUANTITY_OF_PRODUCTS = 5; // Количество генерируемых тестовых товаров
+// var QUANTITY_OF_ORDERS = 3; // Количество генерируемых тестовых заказов
 
 var IMG_SOURCE = '/img/cards/';
 
+var LETTERS_CYRILLIC_TO_LATIN = {'Ё': 'Yo', 'Й': 'I', 'Ц': 'Ts', 'У': 'U', 'К': 'K', 'Е': 'E', 'Н': 'N', 'Г': 'G', 'Ш': 'Sh', 'Щ': 'Sch', 'З': 'Z', 'Х': 'H', 'Ъ': '', 'ё': 'yo', 'й': 'i', 'ц': 'ts', 'у': 'u', 'к': 'k', 'е': 'e', 'н': 'n', 'г': 'g', 'ш': 'sh', 'щ': 'sch', 'з': 'z', 'х': 'h', 'ъ': '', 'Ф': 'F', 'Ы': 'I', 'В': 'V', 'А': 'a', 'П': 'P', 'Р': 'R', 'О': 'O', 'Л': 'L', 'Д': 'D', 'Ж': 'Zh', 'Э': 'E', 'ф': 'f', 'ы': 'i', 'в': 'v', 'а': 'a', 'п': 'p', 'р': 'r', 'о': 'o', 'л': 'l', 'д': 'd', 'ж': 'zh', 'э': 'e', 'Я': 'Ya', 'Ч': 'Ch', 'С': 'S', 'М': 'M', 'И': 'I', 'Т': 'T', 'Ь': '', 'Б': 'B', 'Ю': 'Yu', 'я': 'ya', 'ч': 'ch', 'с': 's', 'м': 'm', 'и': 'i', 'т': 't', 'ь': '', 'б': 'b', 'ю': 'yu'};
 
-// Функция рандома
+var CLOSE_TO_END_NUMBER = 5;
+
+
 var getRandomIntFromInterval = function (min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+var transliterateCyrillicToLatin = function (word) {
+  return word.split('').map(function (char) {
+    return LETTERS_CYRILLIC_TO_LATIN[char] || char;
+  }).join('');
 };
 
 var getRandomValues = function (mockArray) {
@@ -35,12 +44,13 @@ var getRandomValues = function (mockArray) {
 var makeProductData = function (productName) {
   var product = {};
   product.name = productName;
+  product.id = transliterateCyrillicToLatin(productName);
   product.picture = IMG_SOURCE + PRODUCT_IMAGES[getRandomIntFromInterval(0, PRODUCT_IMAGES.length)];
-  product.amount = getRandomIntFromInterval(0, 20);
+  product.amount = getRandomIntFromInterval(0, 6);
   product.price = getRandomIntFromInterval(100, 1500);
   product.weight = getRandomIntFromInterval(30, 300);
   product.rating = {
-    value: getRandomIntFromInterval(1, 5),
+    value: getRandomIntFromInterval(1, 20),
     number: getRandomIntFromInterval(10, 900)
   };
   product.nutritionFacts = {
@@ -64,7 +74,7 @@ var clearStars = function (element) {
   return element;
 };
 
-// Определение количесва звёзд в рейтинге
+// Определение количества звёзд в рейтинге
 var setRatingClass = function (element, value) {
   switch (value) {
     case 1:
@@ -96,6 +106,16 @@ var makeProductCardNode = function (cardNode, productData) {
   var sugar = cardNode.querySelector('.card__characteristic');
   var contents = cardNode.querySelector('.card__composition-list');
 
+  cardNode.setAttribute('data-id', productData.id);
+
+  if (productData.amount > 1 && productData.amount <= 5) {
+    cardNode.classList.remove('card--in-stock');
+    cardNode.classList.add('card--little');
+  } else if (productData.amount < 1) {
+    cardNode.classList.remove('card--in-stock');
+    cardNode.classList.add('card--soon');
+  }
+
   title.textContent = productData.name;
 
   price.childNodes.item(0).textContent = productData.price;
@@ -119,9 +139,13 @@ var makeProductCardNode = function (cardNode, productData) {
 var makeOrderNode = function (cardNode, productData) {
   var title = cardNode.querySelector('.card-order__title');
   var price = cardNode.querySelector('.card-order__price');
+  var amount = cardNode.querySelector('.card-order__count');
+
+  cardNode.setAttribute('data-id', productData.id);
 
   title.textContent = productData.name;
   price.textContent = productData.price;
+  amount.value = productData.orderAmount;
 
   return cardNode;
 };
@@ -142,7 +166,10 @@ var createElementsBlockFromTemplate = function (template, elementFactory, dataAr
 
 
 var catalog = document.querySelector('.catalog__cards'); // Каталог на странице
-var order = document.querySelector('.goods__cards'); // Список заказов
+var cart = document.querySelector('.goods__cards'); // Список заказов
+
+var totalOrderSum = 0;
+var totalOrderAmount = 0;
 
 var productCardTemplate = document
   .querySelector('#card')
@@ -154,7 +181,17 @@ var orderTemplate = document
   .querySelector('article.card-order'); // Шаблон заказанного товара
 
 var productList = makeProductDataList(QUANTITY_OF_PRODUCTS); // Формируем список товаров
-var orderList = makeProductDataList(QUANTITY_OF_ORDERS); // Формируем список заказанных товаров
+var orderList = []; // Формируем список заказанных товаров
+
+var findProductById = function (targetId, dataArray) {
+  var target = {};
+  for (var i = 0; i < dataArray.length; i++) {
+    if (dataArray[i].id === targetId) {
+      target = dataArray[i];
+    }
+  }
+  return target;
+};
 
 // Список сформированных карточек с товарами
 var fragmentOfProductCards = createElementsBlockFromTemplate(
@@ -163,12 +200,14 @@ var fragmentOfProductCards = createElementsBlockFromTemplate(
     productList
 );
 
+/*
 // Список сформированных карточек с заказанными товарами
 var fragmentOfOrders = createElementsBlockFromTemplate(
     orderTemplate,
     makeOrderNode,
     orderList
 );
+*/
 
 catalog.classList.remove('catalog__cards--load');
 catalog.querySelector('.catalog__load')
@@ -176,8 +215,168 @@ catalog.querySelector('.catalog__load')
   .add('visually-hidden'); // Скрываем сообщение о загрузке товаров
 catalog.appendChild(fragmentOfProductCards); // Добавляем на страницу готовый список товаров
 
-order.classList.remove('goods__cards--empty'); // Удаляем класс пустого заказа
-order.querySelector('.goods__card-empty')
+/*
+cart.classList.remove('goods__cards--empty'); // Удаляем класс пустого заказа
+cart.querySelector('.goods__card-empty')
   .classList
   .add('visually-hidden'); // Скрываем сообщение о пустом заказе
-order.appendChild(fragmentOfOrders); // Добавляем на страницу готовый список заказов
+cart.appendChild(fragmentOfOrders); // Добавляем на страницу готовый список заказов
+*/
+
+// Добавление в избранное //////////////////////////////////////////////
+
+var favButton = document.querySelectorAll('.card__btn-favorite');
+var favButtonHandler = function (evt) {
+  var clickedElement = evt.target;
+  clickedElement.classList.toggle('card__btn-favorite--selected');
+};
+
+var listenToFavButtons = function () {
+  for (var i = 0; i < favButton.length; i++) {
+    favButton[i].addEventListener('click', favButtonHandler);
+  }
+};
+listenToFavButtons();
+
+
+// Корзина //////////////////////////////////////////////
+var orderNodes = document.querySelectorAll('.card-order');
+var formOrderNodes = function functionName() {
+  orderNodes = document.querySelectorAll('.card-order');
+  return orderNodes;
+};
+
+var addToCart = function (targetId, targetNode) {
+  var cardNodesInCart = cart.querySelectorAll('.goods_card'); // заказы в корзине
+  var targetProductData = findProductById(targetId, productList); // товар в каталоге
+  var isOrdered = false;
+  var alreadyInCart;
+
+  for (var i = 0; i < cardNodesInCart.length; i++) {
+    if (cardNodesInCart[i].getAttribute('data-id') === targetId) {
+      isOrdered = true;
+      alreadyInCart = cardNodesInCart[i];
+    }
+  }
+
+  if (isOrdered) {
+    var targetOrderData = findProductById(targetId, orderList);
+    var orderAmountNode = alreadyInCart.querySelector('.card-order__count');
+    var increaseAmount = function () {
+      targetOrderData.orderAmount++;
+      targetProductData.amount--;
+      orderAmountNode.value = targetOrderData.orderAmount;
+    };
+
+    if (targetProductData.amount >= CLOSE_TO_END_NUMBER) {
+      increaseAmount();
+    } else if (targetProductData.amount >= 1 && targetProductData.amount < CLOSE_TO_END_NUMBER) {
+      increaseAmount();
+
+      targetNode.classList.remove('card--in-stock');
+      targetNode.classList.add('card--little');
+    } else {
+      targetNode.classList.remove('card--in-stock');
+      targetNode.classList.add('card--soon');
+    }
+  } else {
+    var newOrderData = Object.assign({}, targetProductData);
+    targetProductData.amount--;
+    newOrderData.orderAmount = 1;
+    delete newOrderData.amount;
+
+    orderList.push(newOrderData);
+    var newOrderNode = makeOrderNode(orderTemplate, newOrderData);
+
+    if (cardNodesInCart.length < 1) {
+      cart.classList.remove('goods__cards--empty'); // Удаляем класс пустого заказа
+      cart.querySelector('.goods__card-empty')
+        .classList
+        .add('visually-hidden'); // Скрываем сообщение о пустом заказе
+    }
+
+    cart.appendChild(newOrderNode);
+  }
+  formOrderNodes();
+  listenToAmountButtons();
+};
+
+var toCartButton = document.querySelectorAll('.card__btn');
+var toCartHandler = function (evt) {
+  var clickedElement = evt.target;
+  var cardNode = clickedElement.closest('.catalog__card');
+  var productId = cardNode.getAttribute('data-id');
+
+  addToCart(productId, cardNode);
+};
+
+var listenToCartButtons = function () {
+  for (var i = 0; i < toCartButton.length; i++) {
+    toCartButton[i].addEventListener('click', toCartHandler);
+  }
+};
+listenToCartButtons();
+
+
+// Управление заказом
+
+var orderedGoodsHandler = function (evt) {
+  var clickedElementNode = evt.target;
+  var targetOrderNode = evt.currentTarget;
+  var targetOrderData = findProductById(targetOrderNode.getAttribute('data-id'), orderList);
+  var targetProductData = findProductById(targetOrderNode.getAttribute('data-id'), productList);
+  var amountNode = targetOrderNode.querySelector('.card-order__count');
+  var changeAmount = function (change) {
+    switch (change) {
+      case 'increase':
+        targetOrderData.orderAmount++;
+        targetProductData.amount--;
+        break;
+      case 'decrease':
+        targetOrderData.orderAmount--;
+        targetProductData.amount++;
+        break;
+      case 'reset':
+        console.log(targetProductData);
+        targetProductData.amount += targetOrderData.amount;
+        console.log(targetProductData);
+        break;
+    }
+    amountNode.value = targetOrderData.orderAmount;
+  };
+
+  switch (true) {
+    case clickedElementNode.classList.contains('card-order__btn--increase'):
+      if (targetProductData.amount >= 5) {
+        changeAmount('increase');
+      } else if (targetProductData.amount >= 1 && targetProductData.amount < CLOSE_TO_END_NUMBER) {
+        changeAmount('increase');
+        targetOrderNode.classList.remove('card--in-stock');
+        targetOrderNode.classList.add('card--little');
+      } else {
+        targetOrderNode.classList.remove('card--in-stock');
+        targetOrderNode.classList.add('card--soon');
+      }
+      break;
+    case clickedElementNode.classList.contains('card-order__btn--decrease'):
+      if (targetProductData.amount === 0) {
+        return;
+      } else if (targetProductData.amount < CLOSE_TO_END_NUMBER) {
+        changeAmount('decrease');
+        targetOrderNode.classList.remove('card--little');
+        targetOrderNode.classList.add('card--in-stock');
+      }
+      break;
+    case clickedElementNode.classList.contains('card-order__btn--close'):
+      changeAmount('reset');
+      targetOrderNode.remove();
+  }
+};
+
+var listenToAmountButtons = function () {
+  for (var i = 0; i < orderNodes.length; i++) {
+    orderNodes[i].removeEventListener('click', orderedGoodsHandler);
+    orderNodes[i].addEventListener('click', orderedGoodsHandler);
+  }
+};
+listenToAmountButtons();
