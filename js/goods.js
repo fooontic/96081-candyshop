@@ -356,7 +356,7 @@ var checkIsOrdered = function (product) {
 
 var deleteOrder = function (order) {
   var orderIndex = orderList.indexOf(order);
-  orderList.splice(orderIndex - 1, 1);
+  orderList.splice(orderIndex, 1);
 };
 
 
@@ -427,11 +427,19 @@ var updateCatalogProductNode = function (productData, productNode) {
       productNode.classList.add('card--in-stock');
     }
   } else if (productData.amount >= 1 && productData.amount <= CLOSE_TO_END_NUMBER) {
-    productNode.classList.remove('card--in-stock');
-    productNode.classList.add('card--little');
+    if (productNode.classList.contains('card--little')) {
+      return;
+    } else {
+      productNode.classList.remove('card--in-stock', 'card--soon');
+      productNode.classList.add('card--little');
+    }
   } else {
-    productNode.classList.remove('card--in-stock');
-    productNode.classList.add('card--soon');
+    if (productNode.classList.contains('card--soon')) {
+      return;
+    } else {
+      productNode.classList.remove('card--in-stock', 'card--little');
+      productNode.classList.add('card--soon');
+    }
   }
 };
 
@@ -580,30 +588,42 @@ listenToOrderCards();
 
 // /////////////////////////////////////////////////////////
 //  ПЕРЕКЛЮЧЕНИЕ ВЛКАДОК ДОСТАВКИ
-var deliveryToggle = document.querySelector('.deliver__toggle');
-var deliveryTabs = deliveryToggle.parentNode
-  .querySelectorAll('.deliver__store, .deliver__courier');
+var toggleButtons = document.querySelectorAll('.toggle-btn');
 
-var toggleTabs = function (toggler, id) {
-  // debugger;
-  var targetTab = toggler.parentNode.querySelector('.' + id);
+var findTabs = function (toggler) {
+  var tabs = [];
+  var tab = toggler.nextElementSibling;
 
-  for (var i = 0; i < deliveryTabs.length; i++) {
-    deliveryTabs[i].classList.add('visually-hidden');
+  while (tab) {
+    tabs.push(tab);
+    tab = tab.nextElementSibling;
   }
 
-  // console.log(targetTab);
+  return tabs;
+};
+
+
+var toggleTabs = function (toggler, id, tabsArray) {
+  var targetTab = toggler.parentNode.querySelector('[class*="' + id + '"]');
+
+  for (var i = 0; i < tabsArray.length; i++) {
+    tabsArray[i].classList.add('visually-hidden');
+  }
+
   targetTab.classList.remove('visually-hidden');
 };
 
 
-var updateToggler = function (toggler, evt) {
+var updateToggler = function (toggler, id, evt) {
   var buttons = toggler.querySelectorAll('.toggle-btn__input');
+  var targetButton = toggler.querySelector('#' + id);
 
   for (var i = 0; i < buttons.length; i++) {
     buttons[i].removeAttribute('disabled');
     evt.preventDefault();
   }
+
+  targetButton.setAttribute('checked', '');
 };
 
 
@@ -611,17 +631,19 @@ var toggleTabsHandler = function (evt) {
   var clickedElement = evt.target;
   var toggler = evt.currentTarget;
   var targetId = clickedElement.getAttribute('for');
-  // console.log('event catched');
 
-  toggleTabs(toggler, targetId);
-  updateToggler(toggler, evt);
+  var tabs = findTabs(toggler);
+  toggleTabs(toggler, targetId, tabs);
+  updateToggler(toggler, targetId, evt);
 };
 
 
-var listenToDeliveryTabs = function () {
-  deliveryToggle.addEventListener('click', toggleTabsHandler);
+var listenToTabs = function () {
+  for (var i = 0; i < toggleButtons.length; i++) {
+    toggleButtons[i].addEventListener('click', toggleTabsHandler);
+  }
 };
-listenToDeliveryTabs();
+listenToTabs();
 
 //  ПЕРЕКЛЮЧЕНИЕ ВЛКАДОК ДОСТАВКИ
 // /////////////////////////////////////////////////////////
