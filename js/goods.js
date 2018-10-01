@@ -225,7 +225,6 @@ var getOrders = function () {
   return orders;
 };
 getOrders(); // Список заказов
-var orderForm = document.querySelector('#order');
 
 var productCardTemplate = document
   .querySelector('#card')
@@ -307,16 +306,18 @@ listenToFavButtons();
 // /////////////////////////////////////////////////////////
 //  БЛОКИРОВКА ФОРМЫ ЗАКАЗА
 
+var orderForm = document.querySelector('#order');
+var orderFormFields = orderForm.querySelectorAll('input, fieldset');
+
 var toggleOrderForm = function () {
-  var orderFields = orderForm.querySelectorAll('input, fieldset');
-  for (var i = 0; i < orderFields.length; i++) {
+  // debugger;
+  for (var i = 0; i < orderFormFields.length; i++) {
     if (orderList.length < 1) {
-      orderFields[i].setAttribute('disabled', '');
+      orderFormFields[i].setAttribute('disabled', '');
     } else {
-      orderFields[i].removeAttribute('disabled');
+      orderFormFields[i].removeAttribute('disabled');
     }
   }
-
 };
 toggleOrderForm();
 //  БЛОКИРОВКА ФОРМЫ ЗАКАЗА
@@ -574,4 +575,53 @@ var listenToOrderCards = function () {
 listenToOrderCards();
 
 //  УПРАВЛЕНИЕ ЗАКАЗАМИ
+// /////////////////////////////////////////////////////////
+
+
+// /////////////////////////////////////////////////////////
+//  ПЕРЕКЛЮЧЕНИЕ ВЛКАДОК ДОСТАВКИ
+var deliveryToggle = document.querySelector('.deliver__toggle');
+var deliveryTabs = deliveryToggle.parentNode
+  .querySelectorAll('.deliver__store, .deliver__courier');
+
+var toggleTabs = function (toggler, id) {
+  // debugger;
+  var targetTab = toggler.parentNode.querySelector('.' + id);
+
+  for (var i = 0; i < deliveryTabs.length; i++) {
+    deliveryTabs[i].classList.add('visually-hidden');
+  }
+
+  // console.log(targetTab);
+  targetTab.classList.remove('visually-hidden');
+};
+
+
+var updateToggler = function (toggler, evt) {
+  var buttons = toggler.querySelectorAll('.toggle-btn__input');
+
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].removeAttribute('disabled');
+    evt.preventDefault();
+  }
+};
+
+
+var toggleTabsHandler = function (evt) {
+  var clickedElement = evt.target;
+  var toggler = evt.currentTarget;
+  var targetId = clickedElement.getAttribute('for');
+  // console.log('event catched');
+
+  toggleTabs(toggler, targetId);
+  updateToggler(toggler, evt);
+};
+
+
+var listenToDeliveryTabs = function () {
+  deliveryToggle.addEventListener('click', toggleTabsHandler);
+};
+listenToDeliveryTabs();
+
+//  ПЕРЕКЛЮЧЕНИЕ ВЛКАДОК ДОСТАВКИ
 // /////////////////////////////////////////////////////////
