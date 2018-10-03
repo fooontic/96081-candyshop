@@ -631,6 +631,7 @@ var toggleTabsHandler = function (evt) {
   var clickedElement = evt.target;
   var toggler = evt.currentTarget;
   var targetId = clickedElement.getAttribute('for');
+  // console.log('event init');
 
   var tabs = findTabs(toggler);
   toggleTabs(toggler, targetId, tabs);
