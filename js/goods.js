@@ -21,6 +21,11 @@ var LETTERS_CYRILLIC_TO_LATIN = {'Ё': 'Yo', 'Й': 'I', 'Ц': 'Ts', 'У': 'U', '
 
 var CLOSE_TO_END_NUMBER = 5;
 
+var FILTER_DATA = {
+  rangeMin: 30,
+  rangeMax: 300
+};
+
 //  КОНСТАНТЫ
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
@@ -307,7 +312,7 @@ listenToFavButtons();
 //  БЛОКИРОВКА ФОРМЫ ЗАКАЗА
 
 var orderForm = document.querySelector('#order');
-var orderFormFields = orderForm.querySelectorAll('input, fieldset');
+var orderFormFields = orderForm.querySelectorAll('fieldset input, .payment__inputs input');
 
 var toggleOrderForm = function () {
   // debugger;
@@ -631,7 +636,7 @@ var toggleTabsHandler = function (evt) {
   var clickedElement = evt.target;
   var toggler = evt.currentTarget;
   var targetId = clickedElement.getAttribute('for');
-  // console.log('event init');
+  console.log('event init');
 
   var tabs = findTabs(toggler);
   toggleTabs(toggler, targetId, tabs);
@@ -647,4 +652,118 @@ var listenToTabs = function () {
 listenToTabs();
 
 //  ПЕРЕКЛЮЧЕНИЕ ВЛКАДОК ДОСТАВКИ
+// /////////////////////////////////////////////////////////
+
+
+// /////////////////////////////////////////////////////////
+//  ФИЛЬТР
+
+
+// находим родительский элемент
+// находим всех нужных детей
+// определеям минимальное значение и максимальное
+// получаем ширину рэнжа
+// получаем ширину заполненной линии
+
+var priceRange = document.querySelector('.catalog__filter.range');
+var priceRangeButtons = priceRange.querySelectorAll('.range__btn');
+
+
+var calculatePercents = function (currentX, xStart, xEnd, width) {
+  var percents = 0;
+  if (currentX >= xEnd) {
+    percents = 100;
+  } else if (currentX <= xStart) {
+    percents = 0;
+  } else {
+    var currentXOffset = currentX - xStart;
+    percents = Math.round(currentXOffset / width * 100);
+  }
+  return percents;
+};
+
+var showRangeInterval = function (min, max) {
+  var rangeMin = FILTER_DATA.rangeMin;
+  var rangeMax = FILTER_DATA.rangeMax;
+  var minValNode = priceRange.querySelector('.range__price--min');
+  var maxValNode = priceRange.querySelector('.range__price--max');
+
+  var newMin = rangeMax / 100 * min;
+  var newMax = rangeMax / 100 * max;
+
+  minValNode.textContent = newMin < rangeMin ? rangeMin : newMin;
+  maxValNode.textContent = newMax;
+};
+
+
+var setPriceRangeHandler = function (evt) {
+  var targetButton = evt.target;
+  var targetButtonWidth = targetButton.offsetWidth;
+
+  var range = priceRange;
+  var rangeFillLine = range.querySelector('.range__fill-line');
+  var rangeWidth = range.offsetWidth - targetButtonWidth / 2;
+  var rangeXStart = range.offsetLeft + targetButtonWidth / 2;
+  var rangeXEnd = rangeXStart + rangeWidth;
+
+  var isStartButton = targetButton.classList.contains('range__btn--left');
+
+  var rangeStartButton = range.querySelector('.range__btn--left');
+  var rangeEndButton = range.querySelector('.range__btn--right');
+  var rangeStartButtonXPercent = Math.round(rangeStartButton.offsetLeft / rangeWidth * 100);
+  var rangeEndButtonXPercent = Math.round(rangeEndButton.offsetLeft / rangeWidth * 100);
+
+  var startMouseX = evt.clientX;
+
+  var mouseMoveHandler = function (moveEvt) {
+    moveEvt.preventDefault();
+    var shift = calculatePercents(moveEvt.clientX, rangeXStart, rangeXEnd, rangeWidth);
+    var minPercent = rangeStartButtonXPercent;
+    var maxPercent = rangeEndButtonXPercent;
+
+    if (isStartButton && shift >= rangeEndButtonXPercent) {
+      shift = rangeEndButtonXPercent - 2;
+      minPercent = calculatePercents(moveEvt.clientX, rangeXStart, rangeXEnd, rangeWidth);
+    } else if (!isStartButton && shift <= rangeStartButtonXPercent) {
+      shift = rangeStartButtonXPercent + 2;
+      maxPercent = calculatePercents(moveEvt.clientX, rangeXStart, rangeXEnd, rangeWidth);
+    }
+    console.log(minPercent + ', ' + maxPercent);
+
+    targetButton.style.left = shift + '%';
+
+    var rangeMin = FILTER_DATA.rangeMin;
+    var rangeMax = FILTER_DATA.rangeMax;
+    var minValNode = priceRange.querySelector('.range__price--min');
+    var maxValNode = priceRange.querySelector('.range__price--max');
+
+    var newMin = rangeMax / 100 * minPercent;
+    var newMax = rangeMax / 100 * maxPercent;
+
+    minValNode.textContent = newMin < rangeMin ? rangeMin : newMin;
+    maxValNode.textContent = newMax;
+
+    // scaleRangeFillLine();
+    // showRangeInterval(minPercent, maxPercent);
+  };
+
+  var mouseUpHandler = function () {
+
+    document.removeEventListener('mousemove', mouseMoveHandler);
+    document.removeEventListener('mouseup', mouseUpHandler);
+  };
+
+  document.addEventListener('mousemove', mouseMoveHandler);
+  document.addEventListener('mouseup', mouseUpHandler);
+
+};
+
+
+var listenToPriceRange = function () {
+  for (var i = 0; i < priceRangeButtons.length; i++) {
+    priceRangeButtons[i].addEventListener('mousedown', setPriceRangeHandler);
+  }
+};
+listenToPriceRange();
+//  ФИЛЬТР
 // /////////////////////////////////////////////////////////
