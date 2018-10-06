@@ -13,7 +13,6 @@ var NUTRITION_CONTENTS = ['молоко', 'сливки', 'вода', 'пище�
 var MIN_NUTRITION_CONTENTS_QUANTITY = 2;
 
 var QUANTITY_OF_PRODUCTS = 5; // Количество генерируемых тестовых товаров
-// var QUANTITY_OF_ORDERS = 3; // Количество генерируемых тестовых заказов
 
 var IMG_SOURCE = '/img/cards/';
 
@@ -102,9 +101,6 @@ var makeProductDataList = function (quantity) {
 
 var productList = makeProductDataList(QUANTITY_OF_PRODUCTS); // Формируем список товаров
 var orderList = []; // Формируем список заказанных товаров
-
-// var totalOrderSum = 0;
-// var totalOrderAmount = 0;
 
 //  ГЕНЕРАЦИЯ ДАННЫХ
 // /////////////////////////////////////////////////////////
@@ -315,7 +311,6 @@ var orderForm = document.querySelector('#order');
 var orderFormFields = orderForm.querySelectorAll('fieldset input, .payment__inputs input');
 
 var toggleOrderForm = function () {
-  // debugger;
   for (var i = 0; i < orderFormFields.length; i++) {
     if (orderList.length < 1) {
       orderFormFields[i].setAttribute('disabled', '');
@@ -347,12 +342,12 @@ var getProductById = function (targetId, dataArray) {
 
 var checkIsOrdered = function (product) {
   var productId = product.id;
-  var orderListSlice = orderList;
   var isOrdered = false;
 
   for (var i = 0; i < orderList.length; i++) {
-    if (orderListSlice[i].id === productId) {
+    if (orderList[i].id === productId) {
       isOrdered = true;
+      break;
     }
   }
   return isOrdered;
@@ -366,7 +361,6 @@ var deleteOrder = function (order) {
 
 
 var updateOrderList = function () {
-  // debugger;
   for (var i = 0; i < orderList.length; i++) {
     if (orderList[i].orderAmount < 1) {
       deleteOrder(orderList[i]);
@@ -375,29 +369,27 @@ var updateOrderList = function () {
 };
 
 var changeOrderAmount = function (product, order, change) {
-  switch (change) {
-    case 'increase':
-      if (product.amount > 0) {
-        order.orderAmount++;
-        product.amount--;
-        return;
-      } else {
-        return;
-      }
-    case 'decrease':
-      if (order.orderAmount > 0) {
-        order.orderAmount--;
-        product.amount++;
-        return;
-      } else {
-        return;
-      }
-    case 'reset':
-      // debugger;
-      product.amount += order.orderAmount;
-      order.orderAmount = 0;
-      deleteOrder(order);
-      break;
+  if (change === 'increase') {
+    if (product.amount > 0) {
+      order.orderAmount++;
+      product.amount--;
+      return;
+    } else {
+      return;
+    }
+  } else if (change === 'decrease') {
+    if (order.orderAmount > 0) {
+      order.orderAmount--;
+      product.amount++;
+      return;
+    } else {
+      return;
+    }
+  } else if (change === 'reset') {
+    product.amount += order.orderAmount;
+    order.orderAmount = 0;
+    deleteOrder(order);
+    return;
   }
 };
 
@@ -413,7 +405,7 @@ var addNewOrder = function (product) {
 };
 
 
-var addToOrderList = function (product, isOrdered) {
+var addProductToOrderList = function (product, isOrdered) {
   if (isOrdered) {
     var orderData = getProductById(product.id, orderList);
     changeOrderAmount(product, orderData, 'increase');
@@ -422,26 +414,33 @@ var addToOrderList = function (product, isOrdered) {
   }
 };
 
+var calculateTotalOrder = function () {
+  var sum = 0;
+  var amount = 0;
+  for (var i = 0; i < orderList.length; i++) {
+    sum += orderList[i].price * orderList[i].orderAmount;
+    amount += orderList[i].orderAmount;
+  }
+  return {
+    sum: sum,
+    amount: amount
+  };
+};
+
 
 var updateCatalogProductNode = function (productData, productNode) {
   if (productData.amount > CLOSE_TO_END_NUMBER) {
-    if (productNode.classList.contains('card--in-stock')) {
-      return;
-    } else {
+    if (!productNode.classList.contains('card--in-stock')) {
       productNode.classList.remove('card--little', 'card--soon');
       productNode.classList.add('card--in-stock');
     }
   } else if (productData.amount >= 1 && productData.amount <= CLOSE_TO_END_NUMBER) {
-    if (productNode.classList.contains('card--little')) {
-      return;
-    } else {
+    if (!productNode.classList.contains('card--little')) {
       productNode.classList.remove('card--in-stock', 'card--soon');
       productNode.classList.add('card--little');
     }
   } else {
-    if (productNode.classList.contains('card--soon')) {
-      return;
-    } else {
+    if (!productNode.classList.contains('card--soon')) {
       productNode.classList.remove('card--in-stock', 'card--little');
       productNode.classList.add('card--soon');
     }
@@ -484,33 +483,30 @@ var updateOrderItemNode = function (orderId, isOrdered, orderData) {
 
 
 var updateTotalCart = function () {
-  var sum = 0;
-  var amount = 0;
-  var cartTotal = document.querySelector('.goods__total');
-  var cartSum = cartTotal.querySelector('.goods__price');
-  var cartBtn = cartTotal.querySelector('.goods__order-link');
+  var cartTotalNode = document.querySelector('.goods__total');
+  var cartSumNode = cartTotalNode.querySelector('.goods__price');
+  var cartBtnNode = cartTotalNode.querySelector('.goods__order-link');
 
-  for (var i = 0; i < orderList.length; i++) {
-    sum += orderList[i].price * orderList[i].orderAmount;
-    amount += orderList[i].orderAmount;
-  }
+  var totalCartData = calculateTotalOrder();
+  var totalSumData = totalCartData.sum;
+  var totalAmountData = totalCartData.amount;
 
-  if (amount > 0) {
-    cartPreview.textContent = 'В корзине ' + amount + ' товара, на сумму ' + sum + ' ₽';
-    cartTotal.classList.remove('visually-hidden');
-    cartTotal.querySelector('.goods__total-count')
+  if (totalAmountData > 0) {
+    cartPreview.textContent = 'В корзине ' + totalAmountData + ' товара, на сумму ' + totalSumData + ' ₽';
+    cartTotalNode.classList.remove('visually-hidden');
+    cartTotalNode.querySelector('.goods__total-count')
       .childNodes.item(0)
-      .textContent = 'Итого за ' + amount + ' товаров: ';
-    cartSum.textContent = sum + ' ₽';
-    cartBtn.classList.remove('goods__order-link--disabled');
+      .textContent = 'Итого за ' + totalAmountData + ' товаров: ';
+    cartSumNode.textContent = totalSumData + ' ₽';
+    cartBtnNode.classList.remove('goods__order-link--disabled');
   } else {
     cartPreview.textContent = 'В корзине ничего нет';
-    cartTotal.classList.add('visually-hidden');
-    cartTotal.querySelector('.goods__total-count')
+    cartTotalNode.classList.add('visually-hidden');
+    cartTotalNode.querySelector('.goods__total-count')
       .childNodes.item(0)
       .textContent = 'Итого за 0 товаров: ';
-    cartSum.textContent = '0 ₽';
-    cartBtn.classList.remove('goods__order-link--disabled');
+    cartSumNode.textContent = '0 ₽';
+    cartBtnNode.classList.remove('goods__order-link--disabled');
     toggleEmptyCartMessage();
   }
 };
@@ -523,7 +519,7 @@ var addProductToOrderHandler = function (evt) {
   var targetProduct = getProductById(targetProductId, productList);
   var isOrdered = checkIsOrdered(targetProduct);
 
-  addToOrderList(targetProduct, isOrdered);
+  addProductToOrderList(targetProduct, isOrdered);
   var orderData = getProductById(targetProductId, orderList);
 
   toggleEmptyCartMessage();
@@ -624,8 +620,8 @@ var updateToggler = function (toggler, id, evt) {
   var targetButton = toggler.querySelector('#' + id);
 
   for (var i = 0; i < buttons.length; i++) {
-    buttons[i].removeAttribute('disabled');
-    evt.preventDefault();
+    buttons[i].removeAttribute('checked');
+    evt.preventDefault(); // Обрубаю дефолтное событие браузера по клику на лейбл с атрибутом for
   }
 
   targetButton.setAttribute('checked', '');
@@ -636,7 +632,6 @@ var toggleTabsHandler = function (evt) {
   var clickedElement = evt.target;
   var toggler = evt.currentTarget;
   var targetId = clickedElement.getAttribute('for');
-  console.log('event init');
 
   var tabs = findTabs(toggler);
   toggleTabs(toggler, targetId, tabs);
@@ -704,19 +699,21 @@ var setPriceRangeHandler = function (evt) {
     var minValNode = priceRange.querySelector('.range__price--min');
     var maxValNode = priceRange.querySelector('.range__price--max');
 
+    var compensation = 2;
+
     // Проверка на пересечение двух кнопок между собой
-    if (isStartButton && shift < rangeEndButtonXPercent - 2) {
+    if (isStartButton && shift < rangeEndButtonXPercent - compensation) {
       minValNode.textContent = Math.round(rangeMax / 100 * currentPercent + rangeMin);
-      rangeFillLine.style.left = shift + 2 + '%';
-    } else if (isStartButton && shift >= rangeEndButtonXPercent - 2) {
-      shift = rangeEndButtonXPercent - 2;
+      rangeFillLine.style.left = shift + compensation + '%';
+    } else if (isStartButton && shift >= rangeEndButtonXPercent - compensation) {
+      shift = rangeEndButtonXPercent - compensation;
       minValNode.textContent = Math.round(rangeMax / 100 * shift + rangeMin);
     } else if (!isStartButton && shift <= rangeStartButtonXPercent) {
-      shift = rangeStartButtonXPercent + 2;
+      shift = rangeStartButtonXPercent + compensation;
       maxValNode.textContent = Math.round(rangeMax / 100 * shift + rangeMin);
     } else {
       maxValNode.textContent = Math.round(rangeMax / 100 * currentPercent + rangeMin);
-      rangeFillLine.style.right = 100 - shift - 2 + '%';
+      rangeFillLine.style.right = 100 - shift - compensation + '%';
     }
 
     targetButton.style.left = shift + '%';
