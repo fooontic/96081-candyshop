@@ -658,13 +658,6 @@ listenToTabs();
 // /////////////////////////////////////////////////////////
 //  ФИЛЬТР
 
-
-// находим родительский элемент
-// находим всех нужных детей
-// определеям минимальное значение и максимальное
-// получаем ширину рэнжа
-// получаем ширину заполненной линии
-
 var priceRange = document.querySelector('.catalog__filter.range');
 var priceRangeButtons = priceRange.querySelectorAll('.range__btn');
 
@@ -682,80 +675,60 @@ var calculatePercents = function (currentX, xStart, xEnd, width) {
   return percents;
 };
 
-var showRangeInterval = function (min, max) {
-  var rangeMin = FILTER_DATA.rangeMin;
-  var rangeMax = FILTER_DATA.rangeMax;
-  var minValNode = priceRange.querySelector('.range__price--min');
-  var maxValNode = priceRange.querySelector('.range__price--max');
-
-  var newMin = rangeMax / 100 * min;
-  var newMax = rangeMax / 100 * max;
-
-  minValNode.textContent = newMin < rangeMin ? rangeMin : newMin;
-  maxValNode.textContent = newMax;
-};
-
 
 var setPriceRangeHandler = function (evt) {
+  evt.preventDefault();
   var targetButton = evt.target;
   var targetButtonWidth = targetButton.offsetWidth;
 
   var range = priceRange;
   var rangeFillLine = range.querySelector('.range__fill-line');
-  var rangeWidth = range.offsetWidth - targetButtonWidth / 2;
-  var rangeXStart = range.offsetLeft + targetButtonWidth / 2;
+  var rangeWidth = range.offsetWidth - targetButtonWidth / 2; // Ширина слайдера с визуальной компенсацией в половину кнопки
+  var rangeXStart = range.offsetLeft + targetButtonWidth / 2; // Начало слайдера с визуальной компенсацией в половину кнопки
   var rangeXEnd = rangeXStart + rangeWidth;
 
   var isStartButton = targetButton.classList.contains('range__btn--left');
 
   var rangeStartButton = range.querySelector('.range__btn--left');
   var rangeEndButton = range.querySelector('.range__btn--right');
-  var rangeStartButtonXPercent = Math.round(rangeStartButton.offsetLeft / rangeWidth * 100);
-  var rangeEndButtonXPercent = Math.round(rangeEndButton.offsetLeft / rangeWidth * 100);
-
-  var startMouseX = evt.clientX;
+  var rangeStartButtonXPercent = Math.round(rangeStartButton.offsetLeft / rangeWidth * 100); // Позиция кнопок в процентах относительно слайдера
+  var rangeEndButtonXPercent = Math.round(rangeEndButton.offsetLeft / rangeWidth * 100); // Позиция кнопок в процентах относительно слайдера
 
   var mouseMoveHandler = function (moveEvt) {
     moveEvt.preventDefault();
     var shift = calculatePercents(moveEvt.clientX, rangeXStart, rangeXEnd, rangeWidth);
-    var minPercent = rangeStartButtonXPercent;
-    var maxPercent = rangeEndButtonXPercent;
-
-    if (isStartButton && shift >= rangeEndButtonXPercent) {
-      shift = rangeEndButtonXPercent - 2;
-      minPercent = calculatePercents(moveEvt.clientX, rangeXStart, rangeXEnd, rangeWidth);
-    } else if (!isStartButton && shift <= rangeStartButtonXPercent) {
-      shift = rangeStartButtonXPercent + 2;
-      maxPercent = calculatePercents(moveEvt.clientX, rangeXStart, rangeXEnd, rangeWidth);
-    }
-    console.log(minPercent + ', ' + maxPercent);
-
-    targetButton.style.left = shift + '%';
+    var currentPercent = calculatePercents(moveEvt.clientX, rangeXStart, rangeXEnd, rangeWidth);
 
     var rangeMin = FILTER_DATA.rangeMin;
-    var rangeMax = FILTER_DATA.rangeMax;
+    var rangeMax = FILTER_DATA.rangeMax - rangeMin;
     var minValNode = priceRange.querySelector('.range__price--min');
     var maxValNode = priceRange.querySelector('.range__price--max');
 
-    var newMin = rangeMax / 100 * minPercent;
-    var newMax = rangeMax / 100 * maxPercent;
+    // Проверка на пересечение двух кнопок между собой
+    if (isStartButton && shift < rangeEndButtonXPercent - 2) {
+      minValNode.textContent = Math.round(rangeMax / 100 * currentPercent + rangeMin);
+      rangeFillLine.style.left = shift + 2 + '%';
+    } else if (isStartButton && shift >= rangeEndButtonXPercent - 2) {
+      shift = rangeEndButtonXPercent - 2;
+      minValNode.textContent = Math.round(rangeMax / 100 * shift + rangeMin);
+    } else if (!isStartButton && shift <= rangeStartButtonXPercent) {
+      shift = rangeStartButtonXPercent + 2;
+      maxValNode.textContent = Math.round(rangeMax / 100 * shift + rangeMin);
+    } else {
+      maxValNode.textContent = Math.round(rangeMax / 100 * currentPercent + rangeMin);
+      rangeFillLine.style.right = 100 - shift - 2 + '%';
+    }
 
-    minValNode.textContent = newMin < rangeMin ? rangeMin : newMin;
-    maxValNode.textContent = newMax;
-
-    // scaleRangeFillLine();
-    // showRangeInterval(minPercent, maxPercent);
+    targetButton.style.left = shift + '%';
   };
 
   var mouseUpHandler = function () {
-
     document.removeEventListener('mousemove', mouseMoveHandler);
     document.removeEventListener('mouseup', mouseUpHandler);
   };
 
   document.addEventListener('mousemove', mouseMoveHandler);
   document.addEventListener('mouseup', mouseUpHandler);
-
 };
 
 
@@ -765,5 +738,6 @@ var listenToPriceRange = function () {
   }
 };
 listenToPriceRange();
+
 //  ФИЛЬТР
 // /////////////////////////////////////////////////////////
