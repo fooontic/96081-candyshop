@@ -359,10 +359,14 @@ var deleteOrder = function (order) {
 
 
 var updateOrderList = function () {
+  var ordersToDelete = [];
   for (var i = 0; i < orderList.length; i++) {
     if (orderList[i].orderAmount < 1) {
-      deleteOrder(orderList[i]);
+      ordersToDelete.push(orderList[i]);
     }
+  }
+  for (var j = 0; j < ordersToDelete.length; j++) {
+    deleteOrder(ordersToDelete[j]);
   }
 };
 
