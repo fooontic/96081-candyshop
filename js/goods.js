@@ -285,19 +285,19 @@ if (orderList.length >= 1) {
 // /////////////////////////////////////////////////////////
 // ДОБАВЛЕНИЕ В ИЗБРАННОЕ
 
-var addToFavHandler = function (evt) {
+var addToFavoriteHandler = function (evt) {
   var clickedElement = evt.target;
   clickedElement.classList.toggle('card__btn-favorite--selected');
 };
 
-var favButton = document.querySelectorAll('.card__btn-favorite');
+var favoriteButton = document.querySelectorAll('.card__btn-favorite');
 
-var listenToFavButtons = function () {
-  for (var i = 0; i < favButton.length; i++) {
-    favButton[i].addEventListener('click', addToFavHandler);
+var listenToFavoriteButtons = function () {
+  for (var i = 0; i < favoriteButton.length; i++) {
+    favoriteButton[i].addEventListener('click', addToFavoriteHandler);
   }
 };
-listenToFavButtons();
+listenToFavoriteButtons();
 
 // ДОБАВЛЕНИЕ В ИЗБРАННОЕ
 // /////////////////////////////////////////////////////////
@@ -329,14 +329,12 @@ toggleOrderForm();
 //  ДОБАВЛЕНИЕ В КОРЗИНУ
 
 var getProductById = function (targetId, dataArray) {
-  var target = {};
   for (var i = 0; i < dataArray.length; i++) {
     if (dataArray[i].id === targetId) {
-      target = dataArray[i];
-      break;
+      return dataArray[i];
     }
   }
-  return target;
+  return {};
 };
 
 
@@ -373,23 +371,16 @@ var changeOrderAmount = function (product, order, change) {
     if (product.amount > 0) {
       order.orderAmount++;
       product.amount--;
-      return;
-    } else {
-      return;
     }
   } else if (change === 'decrease') {
     if (order.orderAmount > 0) {
       order.orderAmount--;
       product.amount++;
-      return;
-    } else {
-      return;
     }
   } else if (change === 'reset') {
     product.amount += order.orderAmount;
     order.orderAmount = 0;
     deleteOrder(order);
-    return;
   }
 };
 
@@ -476,6 +467,7 @@ var updateOrderItemNode = function (orderId, isOrdered, orderData) {
   } else {
     var templateCopy = orderTemplate.cloneNode(true);
     var newOrderNode = makeOrderNode(templateCopy, orderData);
+    newOrderNode.addEventListener('click', manageOrderHandler);
 
     cart.appendChild(newOrderNode);
   }
@@ -527,8 +519,6 @@ var addProductToOrderHandler = function (evt) {
   updateOrderItemNode(targetProductId, isOrdered, orderData);
   updateTotalCart();
 
-  listenToOrderCards();
-
   toggleOrderForm();
 };
 
@@ -554,16 +544,12 @@ var manageOrderHandler = function (evt) {
   var targetProductData = getProductById(targetOrderNode.getAttribute('data-id'), productList);
   var targetProductNode = catalog.querySelector('.catalog__card[data-id="' + targetProductData.id + '"]');
 
-  switch (true) {
-    case clickedElementNode.classList.contains('card-order__btn--increase'):
-      changeOrderAmount(targetProductData, targetOrderData, 'increase');
-      break;
-    case clickedElementNode.classList.contains('card-order__btn--decrease'):
-      changeOrderAmount(targetProductData, targetOrderData, 'decrease');
-      break;
-    case clickedElementNode.classList.contains('card-order__close'):
-      changeOrderAmount(targetProductData, targetOrderData, 'reset');
-      break;
+  if (clickedElementNode.classList.contains('card-order__btn--increase')) {
+    changeOrderAmount(targetProductData, targetOrderData, 'increase');
+  } else if (clickedElementNode.classList.contains('card-order__btn--decrease')) {
+    changeOrderAmount(targetProductData, targetOrderData, 'decrease');
+  } else if (clickedElementNode.classList.contains('card-order__close')) {
+    changeOrderAmount(targetProductData, targetOrderData, 'reset');
   }
 
   updateOrderList();
@@ -573,15 +559,6 @@ var manageOrderHandler = function (evt) {
 
   toggleOrderForm();
 };
-
-var listenToOrderCards = function () {
-  var orders = getOrders();
-  for (var i = 0; i < orders.length; i++) {
-    orders[i].removeEventListener('click', manageOrderHandler);
-    orders[i].addEventListener('click', manageOrderHandler);
-  }
-};
-listenToOrderCards();
 
 //  УПРАВЛЕНИЕ ЗАКАЗАМИ
 // /////////////////////////////////////////////////////////
@@ -618,10 +595,10 @@ var toggleTabs = function (toggler, id, tabsArray) {
 var updateToggler = function (toggler, id, evt) {
   var buttons = toggler.querySelectorAll('.toggle-btn__input');
   var targetButton = toggler.querySelector('#' + id);
+  evt.preventDefault(); // Обрубаю дефолтное событие браузера по клику на лейбл с атрибутом for
 
   for (var i = 0; i < buttons.length; i++) {
     buttons[i].removeAttribute('checked');
-    evt.preventDefault(); // Обрубаю дефолтное событие браузера по клику на лейбл с атрибутом for
   }
 
   targetButton.setAttribute('checked', '');
